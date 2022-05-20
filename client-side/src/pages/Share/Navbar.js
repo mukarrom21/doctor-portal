@@ -1,26 +1,35 @@
+import { signOut } from "firebase/auth";
 import React from "react";
-import { Link } from "react-router-dom";
+import { useAuthState } from "react-firebase-hooks/auth";
+import auth from "../../firebase.init";
+import CustomLink from "./CustomLink";
 
 const Navbar = () => {
+  const [user] = useAuthState(auth);
+
   const menuItems = (
     <>
       <li>
-        <Link to="/">Home</Link>
+        <CustomLink to="/home">Home</CustomLink>
       </li>
       <li>
-        <Link to="/appointment">Appointment</Link>
+        <CustomLink to="/appointment">Appointment</CustomLink>
       </li>
       <li>
-        <Link to="/review">Review</Link>
+        <CustomLink to="/review">Review</CustomLink>
       </li>
       <li>
-        <Link to="/contact">Contact</Link>
+        <CustomLink to="/contact">Contact</CustomLink>
       </li>
       <li>
-        <Link to="/about">About</Link>
+        <CustomLink to="/about">About</CustomLink>
       </li>
       <li>
-        <Link to="/login">Login</Link>
+        {!user ? (
+          <CustomLink to="/login">Login</CustomLink>
+        ) : (
+          <button onClick={()=>signOut(auth)}>Log Out</button>
+        )}
       </li>
     </>
   );
@@ -52,14 +61,13 @@ const Navbar = () => {
               {menuItems}
             </ul>
           </div>
-          <Link to="/" className="btn btn-ghost normal-case text-xl">Doctor Portal</Link>
+          <CustomLink to="/" className="btn btn-ghost normal-case text-xl">
+            Doctor Portal
+          </CustomLink>
         </div>
         <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal p-0">
-            {menuItems}
-          </ul>
+          <ul className="menu menu-horizontal p-0">{menuItems}</ul>
         </div>
-        
       </div>
     </div>
   );

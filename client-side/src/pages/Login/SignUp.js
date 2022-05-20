@@ -1,58 +1,80 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import {
-  useSignInWithEmailAndPassword,
+  useCreateUserWithEmailAndPassword,
   useSignInWithGoogle,
+  useUpdateProfile,
 } from "react-firebase-hooks/auth";
 import auth from "../../firebase.init";
 import Loading from "../Share/Loading";
-
-const Login = () => {
+const SignUp = () => {
   const [signInWithGoogle, gUser, gLoading, gError] = useSignInWithGoogle(auth);
-  const [signInWithEmailAndPassword, user, loading, error] =
-    useSignInWithEmailAndPassword(auth);
-
+  const [createUserWithEmailAndPassword, user, loading, error] =
+    useCreateUserWithEmailAndPassword(auth);
+  const [updateProfile, updating, updateError] = useUpdateProfile(auth);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  let from = location.state?.from?.pathname || "/";
   let loginError;
 
-  if (error || gError) {
+  if (error || gError || updateError) {
     loginError = (
       <div className="bg-red-100 mb-3 rounded-lg">
         <p className="text-red-500 py-4 pl-2">
-          Error: {error?.message || gError?.message}
+          Error: {error?.message || gError?.message || updateError.message}
         </p>
       </div>
     );
   }
-  if (loading || gLoading) {
+  if (loading || gLoading || updating) {
     return <Loading></Loading>;
   }
   if (user || gUser) {
-    navigate(from, { replace: true });
+    console.log(user || gUser);
   }
 
-  const onSubmit = (data) => {
-    signInWithEmailAndPassword(data.email, data.password);
-    navigate("/appointment");
+  const onSubmit = async (data) => {
+    await createUserWithEmailAndPassword(data.email, data.password);
+    await updateProfile({ displayName: data.name });
+    alert("Updated profile");
+    navigate('/appointment')
   };
 
-  // console.log(watch("example")); // watch input value by passing the name of it
   return (
     <div className="flex justify-center items-center h-[88vh]">
       <div className="card w-96 bg-base-100 shadow-xl">
         <div className="card-body">
-          <h2 className="text-center text-2xl font-bold mb-5">Login</h2>
+          <h2 className="text-center text-2xl font-semibold mb-5">Sign Up</h2>
           {/* "handleSubmit" will validate your inputs before invoking "onSubmit" */}
           <form onSubmit={handleSubmit(onSubmit)} className="">
+            <div className="form-control w-full max-w-xs">
+              <label className="label">
+                <span className="label-text">Name</span>
+              </label>
+              <input
+                {...register("name", {
+                  required: {
+                    value: true,
+                    message: "Name is Required",
+                  },
+                })}
+                type="text"
+                placeholder="Your Name"
+                className="input input-bordered w-full max-w-xs"
+              />
+              <label className="label">
+                {errors.name?.type === "required" && (
+                  <span className="label-text-alt text-red-500">
+                    {errors.name.message}
+                  </span>
+                )}
+              </label>
+            </div>
             <div className="form-control w-full max-w-xs">
               <label className="label">
                 <span className="label-text">Email</span>
@@ -121,16 +143,16 @@ const Login = () => {
             {loginError}
             <input
               type="submit"
-              value={"Login"}
+              value={"Sign Up"}
               className="btn w-full max-w-xs"
             />
           </form>
           {/* ---------------------- Form end  ------------------------------ */}
           <p>
             <small>
-              New to Doctors Portal?{" "}
-              <Link to="/signup" className="text-secondary">
-                Create New Account
+              Already have an account?{" "}
+              <Link to="/login" className="text-secondary">
+                Please login
               </Link>
             </small>
           </p>
@@ -157,4 +179,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;
